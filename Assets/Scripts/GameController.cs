@@ -346,6 +346,9 @@ public class GameController : MonoBehaviour {
 			}
 
 			// TODO play "victory trumpets"
+			AudioSource victoryAudio = GetComponent<AudioSource>();
+			victoryAudio.volume = Data.sound;
+			victoryAudio.Play ();
 		} else if (aiController != null) {
 			aiController.SwitchingPlayers (players [currentPlayer]);
 		}

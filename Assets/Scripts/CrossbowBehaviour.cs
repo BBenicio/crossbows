@@ -85,7 +85,9 @@ public class CrossbowBehaviour : MonoBehaviour {
 
 			GameObject.FindWithTag ("GameController").GetComponent<MouseLook> ().ResetRotation ();
 
-			// TODO play "shoot"
+			AudioSource shootAudio = GetComponent<AudioSource> ();
+			shootAudio.volume = Data.sound;
+			shootAudio.Play ();
 
 			#if UNITY_ANDROID
 			GameObject.FindWithTag ("GameController").GetComponent<InputManager> ().ShootButtonOut ();

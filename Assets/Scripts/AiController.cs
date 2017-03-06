@@ -139,7 +139,7 @@ public class AiController : MonoBehaviour {
 			}
 		}
 
-		input.SetAxes (horizontalAxis / 4, verticalAxis / 4);
+		input.SetAxes (horizontalAxis / 2, verticalAxis / 2);
 	}
 
 	// Find the horizontal rotation change needed

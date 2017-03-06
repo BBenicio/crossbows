@@ -16,7 +16,6 @@ C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\Unity.UNetWea
 C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\Unity.CecilTools.dll
 C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\Mono.Cecil.Pdb.dll
 C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\Mono.Cecil.Mdb.dll
-C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\Assembly-CSharp-firstpass.pdb
 C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\UnityEngine.xml
 C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\UnityEditor.xml
 C:\Users\Bruno\Documents\Unity Projects\Crossbowman\Temp\bin\Debug\UnityEngine.UI.xml

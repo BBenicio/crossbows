@@ -52,7 +52,10 @@ public class BoltBehaviour : MonoBehaviour {
 			transform.localRotation = Quaternion.Euler (eulerAngles);
 
 			if (!hit && transform.position.y < 0) {
-				// TODO play "splash"
+				AudioSource splashAudio = GetComponents<AudioSource>()[1];
+				splashAudio.volume = Data.sound;
+				splashAudio.Play ();
+
 				gameController.BoltHit ();
 
 				Destroy (gameObject, timeToLive);
@@ -76,7 +79,9 @@ public class BoltBehaviour : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider collider) {
-		// TODO play "hit"
+		AudioSource hitAudio = GetComponents<AudioSource>()[0];
+		hitAudio.volume = Data.sound;
+		hitAudio.Play ();
 
 		if (rigidbody == null) {
 			return;

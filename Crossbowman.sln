@@ -1,9 +1,7 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2008
-
-Project("{E48C5DF3-CD4F-1778-C520-BDEB3B9964AA}") = "Crossbowman", "Assembly-CSharp-firstpass.csproj", "{8901D21E-C030-C804-4AF2-700A895F1C30}"
-EndProject
-Project("{E48C5DF3-CD4F-1778-C520-BDEB3B9964AA}") = "Crossbowman", "Assembly-CSharp.csproj", "{3FB0A2B8-F971-420A-177F-1CC42861E259}"
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crossbowman", "Assembly-CSharp.csproj", "{3FB0A2B8-F971-420A-177F-1CC42861E259}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +9,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8901D21E-C030-C804-4AF2-700A895F1C30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8901D21E-C030-C804-4AF2-700A895F1C30}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8901D21E-C030-C804-4AF2-700A895F1C30}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8901D21E-C030-C804-4AF2-700A895F1C30}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3FB0A2B8-F971-420A-177F-1CC42861E259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3FB0A2B8-F971-420A-177F-1CC42861E259}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FB0A2B8-F971-420A-177F-1CC42861E259}.Release|Any CPU.ActiveCfg = Release|Any CPU
