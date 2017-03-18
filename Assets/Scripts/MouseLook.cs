@@ -35,6 +35,8 @@ public class MouseLook : MonoBehaviour {
 	// The current player's behaviour
 	public PlayerBehaviour playerBehaviour;
 
+	private GameController gameController;
+
 	// The x axis rotation (vertical)
 	private float xRot;
 
@@ -49,6 +51,8 @@ public class MouseLook : MonoBehaviour {
 		lockCursor = false;
 		keepCursorVisible = true;
 		#endif
+
+		gameController = GameObject.FindWithTag ("GameController").GetComponent<GameController> ();
 
 		if (!lockCursor) {
 			Cursor.lockState = CursorLockMode.None;
@@ -78,7 +82,7 @@ public class MouseLook : MonoBehaviour {
 			cursorLocked = true;
 		}
 
-		if (camera.GetComponent<CameraBehaviour> ().locked) {
+		if (camera.GetComponent<CameraBehaviour> ().locked || gameController.gameOver) {
 			return;
 		}
 			

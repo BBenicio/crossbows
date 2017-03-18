@@ -51,6 +51,8 @@ public class GameController : MonoBehaviour {
 
 	public AiController aiController;
 
+	public HudBehaviour hud;
+
 	// The minimum distance allowed between players
 	public float minDistance;
 
@@ -84,7 +86,7 @@ public class GameController : MonoBehaviour {
 	private bool shouldSwitchPlayers;
 
 	// Has the game ended?
-	private bool gameOver = false;
+	public bool gameOver { get; private set; }
 
 	// The next player's index
 	private int nextPlayer {
@@ -156,25 +158,6 @@ public class GameController : MonoBehaviour {
 
 		MakeIsland ((val & 1) == 1 ? island2Prefab : island1Prefab, 0);
 		MakeIsland ((val & 2) == 1 ? island2Prefab : island1Prefab, 1);
-
-		/*switch (val) {
-		case 0:
-			MakeIsland (island1Prefab, 0);
-			MakeIsland (island1Prefab, 1);
-			break;
-		case 1:
-			MakeIsland (island1Prefab, 0);
-			MakeIsland (island2Prefab, 1);
-			break;
-		case 2:
-			MakeIsland (island2Prefab, 0);
-			MakeIsland (island1Prefab, 1);
-			break;
-		case 3:
-			MakeIsland (island2Prefab, 0);
-			MakeIsland (island2Prefab, 1);
-			break;
-		}*/
 	}
 
 	// Create an individual island
@@ -228,10 +211,14 @@ public class GameController : MonoBehaviour {
 	}
 
 	void Update () {
-		if (Input.GetButtonUp ("Cancel") || (gameOver && (InputManager.GetAimButton ().justPressed ||
-			InputManager.GetShootButton ().justPressed))) {
+		if (Input.GetButtonUp ("Cancel") /*|| (gameOver && (InputManager.GetAimButton ().justPressed ||
+			InputManager.GetShootButton ().justPressed))*/) {
 
 			Menu ();
+		}
+
+		if (gameOver) {
+			return;
 		}
 
 		#if UNITY_ANDROID
@@ -329,23 +316,33 @@ public class GameController : MonoBehaviour {
 			currentPlayer = nextPlayer;
 
 			bool blueWins = currentPlayer == 0;
-			winText.text = string.Format ("{0} Wins", blueWins ? "Blue" : "Red");
+
+			hud.SetWinText (string.Format ("{0} Wins", blueWins ? "Blue" : "Red"), blueWins ? blueColor : redColor);
+			hud.Enable ();
+			/*winText.text = string.Format ("{0} Wins", blueWins ? "Blue" : "Red");
 			winText.color = blueWins ? blueColor : redColor;
-			winText.GetComponent<Animator> ().SetTrigger ("active");
+			winText.GetComponent<Animator> ().SetTrigger ("active");*/
+
+			#if UNITY_ANDROID
+			mobileControl.SetActive (false);
+			#endif
 
 			gameOver = true;
 
-			if (currentPlayer == 0) {
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.visible = true;
+
+			SetOutline (Color.clear, Color.clear);
+			/*if (currentPlayer == 0) {
 				SetOutline (Color.clear, redColor);
 			} else {
 				SetOutline (blueColor, Color.clear);
-			}
+			}*/
 
 			if (aiController != null) {
 				aiController.input.aiTurn = false;
 			}
 
-			// TODO play "victory trumpets"
 			AudioSource victoryAudio = GetComponent<AudioSource>();
 			victoryAudio.volume = Data.sound;
 			victoryAudio.Play ();

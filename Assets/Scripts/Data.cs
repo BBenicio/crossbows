@@ -52,4 +52,6 @@ public class Data {
 	public static float sound = DefaultSound;
 
 	public static bool hasPlayed = false;
+
+	public static bool tutorial = true;
 }

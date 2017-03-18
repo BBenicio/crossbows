@@ -41,6 +41,8 @@ public class CrossbowBehaviour : MonoBehaviour {
 	// A handle to the current bolt
 	private GameObject currentBolt;
 
+	private GameController gameController;
+
 	// Time elapsed since the last shot
 	private float sinceLastShot;
 
@@ -57,6 +59,8 @@ public class CrossbowBehaviour : MonoBehaviour {
 
 		cameraBehaviour = GameObject.FindWithTag ("MainCamera").GetComponent<CameraBehaviour> ();
 
+		gameController = GameObject.FindWithTag ("GameController").GetComponent<GameController> ();
+
 		animator = GetComponent<Animator> ();
 	}
 
@@ -72,7 +76,7 @@ public class CrossbowBehaviour : MonoBehaviour {
 			animator.SetBool ("aim", aiming);
 		}
 
-		if (active && InputManager.GetShootButton ().justPressed && currentBolt != null) {
+		if (active && InputManager.GetShootButton ().justPressed && currentBolt != null && !gameController.gameOver) {
 			currentBolt.GetComponent<BoltBehaviour> ().Shoot (-transform.right * force);
 
 			currentBolt = null;
@@ -92,7 +96,7 @@ public class CrossbowBehaviour : MonoBehaviour {
 			#if UNITY_ANDROID
 			GameObject.FindWithTag ("GameController").GetComponent<InputManager> ().ShootButtonOut ();
 			#endif
-		} else if (active && InputManager.GetAimButton ().justPressed && !animator.IsInTransition (0)) {
+		} else if (active && InputManager.GetAimButton ().justPressed && !animator.IsInTransition (0) && !gameController.gameOver) {
 			aiming = !aiming;
 			animator.SetBool ("aim", aiming);
 

@@ -23,17 +23,26 @@ public class MenuHandler : MonoBehaviour {
 	// The animator for the transitions
 	public Animator panelAnimator;
 
+	public Dropdown graphicsDropdown;
+	public Slider soundSlider;
+	public Toggle fullscreenToggle;
+	public Toggle tutorialToggle;
+
 	// Going to options?
 	private bool options;
 
 	private void Load () {
 		Data.sensitivity = PlayerPrefs.GetFloat ("sensitivity", Data.sensitivity);
 		Data.aimingSensitivity = PlayerPrefs.GetFloat ("aimingSensitivity", Data.aimingSensitivity);
+		Data.tutorial = PlayerPrefs.GetInt ("tutorial", 1) == 1 && Data.tutorial;
 
 		OnQualityChanged (PlayerPrefs.GetInt ("quality", Data.quality));
 		QualitySettings.SetQualityLevel (Data.quality);
 
 		OnSoundChanged (PlayerPrefs.GetFloat ("sound", Data.sound));
+
+		fullscreenToggle.isOn = Screen.fullScreen;
+		tutorialToggle.isOn = Data.tutorial;
 	}
 
 	void Start () {
@@ -44,10 +53,12 @@ public class MenuHandler : MonoBehaviour {
 			options.Add (new Dropdown.OptionData (name));
 		}
 
-		Dropdown qualityDropdown = GameObject.Find ("GraphicsQuality").GetComponent<Dropdown> ();
-		qualityDropdown.AddOptions (options);
-		qualityDropdown.value = QualitySettings.GetQualityLevel ();
-		qualityDropdown.RefreshShownValue ();
+		//Dropdown qualityDropdown = GameObject.Find ("Graphics").GetComponent<Dropdown> ();
+		graphicsDropdown.AddOptions (options);
+		graphicsDropdown.value = QualitySettings.GetQualityLevel ();
+		graphicsDropdown.RefreshShownValue ();
+
+		soundSlider.value = Data.sound;
 
 		#if UNITY_ADS
 		if (Data.hasPlayed && Advertisement.IsReady ()) {
@@ -125,6 +136,21 @@ public class MenuHandler : MonoBehaviour {
 		options = true;
 	}
 
+	private void SetFullscreen(bool fs) {
+		if (Screen.resolutions == null || Screen.resolutions.Length == 0) {
+			return;
+		}
+
+		Resolution r = Screen.resolutions [Screen.resolutions.Length - 1];
+		if (!fs) {
+			Debug.Log ("OnFullscreenChanged(): windowed 960x540");
+			Screen.SetResolution (960, 540, false);
+		} else {
+			Debug.LogFormat ("OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
+			Screen.SetResolution (r.width, r.height, true);
+		}
+	}
+
 	// Back button pressed, make transitions
 	public void BackButtonClicked () {
 		ButtonClicked ();
@@ -139,10 +165,13 @@ public class MenuHandler : MonoBehaviour {
 
 		QualitySettings.SetQualityLevel (Data.quality);
 
+		SetFullscreen (fullscreenToggle.isOn);
+
 		PlayerPrefs.SetFloat ("sensitivity", Data.sensitivity);
 		PlayerPrefs.SetFloat ("aimingSensitivity", Data.aimingSensitivity);
 		PlayerPrefs.SetInt ("quality", Data.quality);
 		PlayerPrefs.SetFloat ("sound", Data.sound);
+		PlayerPrefs.SetInt ("tutorial", Data.tutorial ? 1 : 0);
 		PlayerPrefs.Save ();
 	}
 
@@ -154,9 +183,15 @@ public class MenuHandler : MonoBehaviour {
 		Data.aimingSensitivity = Data.DefaultAimingSensitivity;
 		Data.quality = Data.DefaultQuality;
 		Data.sound = Data.DefaultSound;
+		Data.tutorial = true;
 
-		GameObject.Find ("GraphicsQuality").GetComponentInChildren<Dropdown> ().value = Data.DefaultQuality;
-		GameObject.Find ("SoundSlider").GetComponentInChildren<Slider> ().value = Data.DefaultSound;
+
+		//GameObject.Find ("GraphicsQuality").GetComponentInChildren<Dropdown> ().value = Data.DefaultQuality;
+		graphicsDropdown.value = Data.DefaultQuality;
+		//GameObject.Find ("SoundSlider").GetComponentInChildren<Slider> ().value = Data.DefaultSound;
+		soundSlider.value = Data.DefaultSound;
+
+		tutorialToggle.isOn = true;
 	}
 
 	// Quality setting changed
@@ -164,7 +199,27 @@ public class MenuHandler : MonoBehaviour {
 		Data.quality = quality;
 	}
 
+	public void OnFullscreenChanged (bool fs) {
+		/*if (Screen.resolutions == null || Screen.resolutions.Length == 0) {
+			return;
+		}
+
+		Resolution r = Screen.resolutions [Screen.resolutions.Length - 1];
+		if (!fs) {
+			Debug.Log ("OnFullscreenChanged(): windowed 960x540");
+			Screen.SetResolution (960, 540, false);
+		} else {
+			Debug.LogFormat ("OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
+			Screen.SetResolution (r.width, r.height, true);
+		}*/
+		Debug.LogFormat ("OnFullscreenChanged({0})", fs);
+	}
+
 	public void OnSoundChanged (float sound) {
 		Data.sound = sound;
+	}
+
+	public void OnTutorialChanged (bool tutorial) {
+		Data.tutorial = tutorial;
 	}
 }
