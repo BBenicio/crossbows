@@ -146,8 +146,8 @@ public class InputManager : MonoBehaviour {
 
 	// Set the horizontal and vertical axes
 	public void SetAxes (float horizontal, float vertical) {
-		horizontalAxis = horizontal;
-		verticalAxis = vertical;
+		horizontalAxis = Mathf.Clamp (horizontal, -1, 1);
+		verticalAxis = Mathf.Clamp (vertical, -1, 1);
 	}
 
 	// Set the horizontal and vertical axes

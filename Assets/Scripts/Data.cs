@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
 public class Data {
-
 	// The default sensitivity
 	public static float DefaultSensitivity {
 		get {
@@ -13,10 +12,22 @@ public class Data {
 	public static float DefaultAimingSensitivity {
 		get {
 			#if UNITY_ANDROID
-			return 0.01f;
+			return 0.05f;
 			#else
 			return 0.8f;
 			#endif
+		}
+	}
+
+	public static float AISensitivity {
+		get {
+			return 5;
+		}
+	}
+
+	public static float AIAimingSensitivity {
+		get {
+			return 0.05f * AISensitivity;
 		}
 	}
 

@@ -82,7 +82,7 @@ public class MouseLook : MonoBehaviour {
 			cursorLocked = true;
 		}
 
-		if (camera.GetComponent<CameraBehaviour> ().locked || gameController.gameOver) {
+		if (camera.GetComponent<CameraBehaviour> ().locked || gameController.gameOver || gameController.paused) {
 			return;
 		}
 			

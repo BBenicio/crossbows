@@ -85,6 +85,8 @@ public class GameController : MonoBehaviour {
 	// Has the current players turn ended?
 	private bool shouldSwitchPlayers;
 
+	public bool paused;
+
 	// Has the game ended?
 	public bool gameOver { get; private set; }
 
@@ -206,19 +208,17 @@ public class GameController : MonoBehaviour {
 		#if UNITY_ANDROID
 		mobileControl.SetActive(true);
 		#else
-		mobileControl.SetActive(false);
+		Destroy (mobileControl);
 		#endif
 	}
 
 	void Update () {
-		if (Input.GetButtonUp ("Cancel") /*|| (gameOver && (InputManager.GetAimButton ().justPressed ||
-			InputManager.GetShootButton ().justPressed))*/) {
-
-			Menu ();
-		}
-
 		if (gameOver) {
 			return;
+		}
+
+		if (Input.GetButtonUp ("Cancel")) {
+			Pause ();
 		}
 
 		#if UNITY_ANDROID
@@ -231,6 +231,10 @@ public class GameController : MonoBehaviour {
 			}
 		}
 		#endif
+
+		if (paused) {
+			return;
+		}
 
 		if (InputManager.GetAimButton ().justPressed) {
 			aimButtonHitTime = Time.time;
@@ -263,13 +267,37 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Go back to the menu
-	void Menu () {
+	public void Menu () {
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
 
 		SetOutline (Color.clear, Color.clear);
 
 		SceneManager.LoadScene ("menu");
+	}
+
+	public void Pause () {
+		if (!paused) {
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.visible = true;
+
+			mouseLook.lockCursor = false;
+
+			hud.Enable (false);
+
+			paused = true;
+			Time.timeScale = 0;
+		} else {
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false;
+
+			mouseLook.lockCursor = true;
+
+			hud.Disable ();
+
+			paused = false;
+			Time.timeScale = 1;
+		}
 	}
 		
 	void LateUpdate () {
@@ -318,13 +346,11 @@ public class GameController : MonoBehaviour {
 			bool blueWins = currentPlayer == 0;
 
 			hud.SetWinText (string.Format ("{0} Wins", blueWins ? "Blue" : "Red"), blueWins ? blueColor : redColor);
-			hud.Enable ();
-			/*winText.text = string.Format ("{0} Wins", blueWins ? "Blue" : "Red");
-			winText.color = blueWins ? blueColor : redColor;
-			winText.GetComponent<Animator> ().SetTrigger ("active");*/
+			hud.Enable (true);
+			mouseLook.lockCursor = false;
 
 			#if UNITY_ANDROID
-			mobileControl.SetActive (false);
+			Destroy (mobileControl);
 			#endif
 
 			gameOver = true;
@@ -333,11 +359,6 @@ public class GameController : MonoBehaviour {
 			Cursor.visible = true;
 
 			SetOutline (Color.clear, Color.clear);
-			/*if (currentPlayer == 0) {
-				SetOutline (Color.clear, redColor);
-			} else {
-				SetOutline (blueColor, Color.clear);
-			}*/
 
 			if (aiController != null) {
 				aiController.input.aiTurn = false;

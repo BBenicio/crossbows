@@ -17,6 +17,8 @@ public class AiController : MonoBehaviour {
 	// The camera aiming guide, used to calculate the rotation
 	public Transform aimingGuide;
 
+	public new Camera camera;
+
 	// The maximum error accepted in the distance estimation
 	public float distanceError = 10;
 
@@ -29,9 +31,6 @@ public class AiController : MonoBehaviour {
 	// The tolerance for the horizontal alignment when not aiming
 	public float yTolerance = 0;
 
-	// The angle between the ai and the player when aiming
-	private float aimingYAngle;
-
 	// The angle between the ai and the player
 	private float yAngle;
 
@@ -41,7 +40,8 @@ public class AiController : MonoBehaviour {
 	// Estimate the distance between the ai and the player
 	private float distanceEstimation {
 		get {
-			return distance + (distanceError * Random.Range (-1f, 1f)) / (attempts + 1);
+			//return distance + (distanceError * Random.Range (-1f, 1f)) / (attempts + 1);
+			return distance + (Random.Range(-1, 2) * distanceError * Random.Range(0.5f, 1f) / (attempts + 1));
 		}
 	}
 
@@ -53,6 +53,7 @@ public class AiController : MonoBehaviour {
 
 	// The last horizontal ajustment, used for smoothing when going too fast
 	private float lastY = 0;
+	private float lastX = 0;
 
 	// The amount of shots fired (attempts made)
 	private int attempts;
@@ -72,28 +73,6 @@ public class AiController : MonoBehaviour {
 
 		Vector3 playerPos = player.transform.position;
 		playerPos.y = 0;
-
-		Vector3 playerHead = player.GetComponent<PlayerBehaviour> ().head.position;
-
-		// Normal angle
-		Quaternion rot = ai.transform.rotation;
-
-		Quaternion target;
-		ai.transform.LookAt (playerHead);
-		target = ai.transform.rotation;
-
-		ai.transform.rotation = rot;
-
-		yAngle = target.eulerAngles.y;
-
-		// Aiming angle
-		rot = aimingGuide.transform.rotation;
-		aimingGuide.LookAt (playerHead);
-		target = aimingGuide.transform.rotation;
-
-		aimingGuide.transform.rotation = rot;
-
-		aimingYAngle = target.eulerAngles.y;
 
 		distance = Vector3.Distance (aiPos, playerPos);
 
@@ -125,7 +104,7 @@ public class AiController : MonoBehaviour {
 		} else if (Mathf.Abs(horizontalAxis) < 0.1f && aiming) {
 			verticalAxis = UpdateXAngle ();
 
-			if (Mathf.Abs(horizontalAxis) <= 1e-3 && Mathf.Abs(verticalAxis) <= 1e-3) {
+			if (Mathf.Abs(horizontalAxis) <= Mathf.Abs(attemptError) && Mathf.Abs(verticalAxis) <= Mathf.Abs(attemptError)) {
 				Debug.LogFormat ("Distance = {0};\nAttempt Error = {1};", attemptDistance, attemptError);
 
 				input.ShootButtonDown ();
@@ -133,81 +112,35 @@ public class AiController : MonoBehaviour {
 				++attempts;
 
 				attemptError = angleError * Random.Range (-1f, 1f);
-				attemptDistance = distanceEstimation;
+				//attemptDistance = distanceEstimation;
+				attemptDistance = Mathf.Lerp(attemptDistance, distance, 0.25f);
 
 				aiming = false;
 			}
 		}
 
-		input.SetAxes (horizontalAxis / 2, verticalAxis / 2);
+		input.SetAxes (horizontalAxis / camera.fieldOfView, verticalAxis / camera.fieldOfView);
 	}
 
 	// Find the horizontal rotation change needed
 	private float UpdateYAngle () {
-		if (aiming) {
-			return UpdateYAngleAiming ();
-		}
+		Vector3 proj = camera.WorldToViewportPoint (player.transform.position);
+		float delta = 0;
 
-		float target = yAngle;
-		if (target > 180) {
-			target -= 360;
-		} else if (target < -180) {
-			target += 360;
-		}
-
-		float rot = ai.transform.rotation.eulerAngles.y;
-		if (rot > 180) {
-			rot -= 360;
-		}
-
-		float deltaY = target - rot;
-
-		if (Mathf.Abs (deltaY) > yTolerance) {
-			deltaY = Mathf.Clamp (deltaY / Data.DefaultSensitivity, -1, 1);
+		if (proj.z < 0) {
+			delta = proj.x < 0.5f ? camera.fieldOfView : -camera.fieldOfView;
 		} else {
-			deltaY = 0;
+			delta = (proj.x - 0.5f) * camera.fieldOfView;
+			delta += attemptError;
 		}
 
-		if (lastY < 0 && deltaY > 0 || lastY > 0 && deltaY < 0) { // Avoid going back and forth eternally
-			deltaY = -lastY / 2;
+		if (lastY < 0 && delta > 0 || lastY > 0 && delta < 0) { // Avoid going back and forth eternally
+			delta = -lastY / 2;
 		}
 
-		lastY = deltaY;
+		lastY = delta;
 
-		return deltaY;
-	}
-
-	// Find the horizontal rotation change needed when aiming
-	private float UpdateYAngleAiming () {
-		float target = aimingYAngle;
-		if (target > 180) {
-			target -= 360;
-		} else if (target < -180) {
-			target += 360;
-		}
-
-		float rot = aimingGuide.rotation.eulerAngles.y + attemptError;
-		if (rot > 180) {
-			rot -= 360;
-		}
-
-		float deltaY = target - rot;
-
-		if (deltaY > 180) {
-			deltaY -= 180;
-		} else if (deltaY < -180) {
-			deltaY += 180;
-		}
-
-		deltaY = Mathf.Clamp (deltaY / (Data.DefaultSensitivity * Data.DefaultAimingSensitivity), -1, 1);
-
-		if (lastY < 0 && deltaY > 0 || lastY > 0 && deltaY < 0) { // Avoid going back and forth eternally
-			deltaY = -lastY / 2;
-		}
-
-		lastY = deltaY;
-
-		return deltaY;
+		return delta;
 	}
 
 	// Find the vertical adjustment to be made
@@ -226,13 +159,19 @@ public class AiController : MonoBehaviour {
 			deltaX += 180;
 		}
 
-		return -Mathf.Clamp (deltaX / (Data.DefaultSensitivity * Data.DefaultAimingSensitivity), -1, 1);
+		if (lastX < 0 && deltaX > 0 || lastX > 0 && deltaX < 0) { // Avoid going back and forth eternally
+			deltaX = -lastX / 2;
+		}
+
+		lastX = deltaX;
+
+		return -deltaX;
 	}
 
 	// Find the angle at which to fire the bolt in order to hit the player
 	private void SetXAngle () {
 		float velocity = ai.GetComponentInChildren<CrossbowBehaviour> ().force * Time.fixedDeltaTime;
-		xAngle = (Mathf.Asin (distanceEstimation * Physics.gravity.y / Mathf.Pow (velocity, 2)) / 2) * Mathf.Rad2Deg;
+		xAngle = (Mathf.Asin (attemptDistance * Physics.gravity.y / Mathf.Pow (velocity, 2)) / 2) * Mathf.Rad2Deg;
 	}
 
 	// Check if it's the ai's turn

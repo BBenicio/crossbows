@@ -32,8 +32,8 @@ public class MenuHandler : MonoBehaviour {
 	private bool options;
 
 	private void Load () {
-		Data.sensitivity = PlayerPrefs.GetFloat ("sensitivity", Data.sensitivity);
-		Data.aimingSensitivity = PlayerPrefs.GetFloat ("aimingSensitivity", Data.aimingSensitivity);
+		//Data.sensitivity = PlayerPrefs.GetFloat ("sensitivity", Data.sensitivity);
+		//Data.aimingSensitivity = PlayerPrefs.GetFloat ("aimingSensitivity", Data.aimingSensitivity);
 		Data.tutorial = PlayerPrefs.GetInt ("tutorial", 1) == 1 && Data.tutorial;
 
 		OnQualityChanged (PlayerPrefs.GetInt ("quality", Data.quality));
@@ -60,8 +60,12 @@ public class MenuHandler : MonoBehaviour {
 
 		soundSlider.value = Data.sound;
 
+		#if UNITY_ANDROID
+		fullscreenToggle.gameObject.SetActive (false);
+		#endif
+
 		#if UNITY_ADS
-		if (Data.hasPlayed && Advertisement.IsReady ()) {
+		if (Data.hasPlayed && Advertisement.IsReady () && Random.value <= 0.4f) {
 			Advertisement.Show ();
 		}
 		#endif
@@ -136,6 +140,12 @@ public class MenuHandler : MonoBehaviour {
 		options = true;
 	}
 
+	public void QuitButtonClicked () {
+		ButtonClicked ();
+
+		Application.Quit ();
+	}
+
 	private void SetFullscreen(bool fs) {
 		if (Screen.resolutions == null || Screen.resolutions.Length == 0) {
 			return;
@@ -167,8 +177,8 @@ public class MenuHandler : MonoBehaviour {
 
 		SetFullscreen (fullscreenToggle.isOn);
 
-		PlayerPrefs.SetFloat ("sensitivity", Data.sensitivity);
-		PlayerPrefs.SetFloat ("aimingSensitivity", Data.aimingSensitivity);
+		//PlayerPrefs.SetFloat ("sensitivity", Data.sensitivity);
+		//PlayerPrefs.SetFloat ("aimingSensitivity", Data.aimingSensitivity);
 		PlayerPrefs.SetInt ("quality", Data.quality);
 		PlayerPrefs.SetFloat ("sound", Data.sound);
 		PlayerPrefs.SetInt ("tutorial", Data.tutorial ? 1 : 0);
@@ -192,6 +202,7 @@ public class MenuHandler : MonoBehaviour {
 		soundSlider.value = Data.DefaultSound;
 
 		tutorialToggle.isOn = true;
+		fullscreenToggle.isOn = false;
 	}
 
 	// Quality setting changed

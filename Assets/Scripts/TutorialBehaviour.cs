@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TutorialBehaviour : MonoBehaviour {
-
-	public GameObject look;
-	public GameObject aim;
-	public GameObject shoot;
+	public GameObject mouseControls;
+	public GameObject touchControls;
 
 	public Animator animator;
 
@@ -40,9 +38,14 @@ public class TutorialBehaviour : MonoBehaviour {
 
 		stage = Stage.Look;
 
-		look.SetActive (true);
-		aim.SetActive (true);
-		shoot.SetActive (true);
+
+		#if UNITY_ANDROID
+		Destroy (mouseControls);
+		touchControls.SetActive (true);
+		#else
+		Destroy (touchControls);
+		mouseControls.SetActive (true);
+		#endif
 	}
 
 	void LookStage () {
@@ -65,7 +68,8 @@ public class TutorialBehaviour : MonoBehaviour {
 	}
 
 	void ShootStage () {
-		if (InputManager.GetShootButton ().pressed) {
+		InputManager.Button shootButton = InputManager.GetShootButton ();
+		if (shootButton.pressed || shootButton.justPressed || shootButton.justReleased) {
 			stage = Stage.Done;
 
 			animator.SetTrigger ("done");

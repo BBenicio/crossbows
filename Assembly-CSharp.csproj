@@ -56,9 +56,6 @@
      <Compile Include="Assets\Scripts\InputManager.cs" />
      <Compile Include="Assets\Scripts\MenuHandler.cs" />
      <Compile Include="Assets\Scripts\MouseLook.cs" />
-     <Compile Include="Assets\Scripts\Network\NetworkGameController.cs" />
-     <Compile Include="Assets\Scripts\Network\NetworkPlayerBehaviour.cs" />
-     <Compile Include="Assets\Scripts\Network\PlayerSync.cs" />
      <Compile Include="Assets\Scripts\PlayerBehaviour.cs" />
      <Compile Include="Assets\Scripts\SeaBehaviour.cs" />
      <Compile Include="Assets\Scripts\Transition.cs" />

@@ -65,6 +65,10 @@ public class CrossbowBehaviour : MonoBehaviour {
 	}
 
 	void Update () {
+		if (gameController.paused) {
+			return;
+		}
+
 		sinceLastShot += Time.deltaTime;
 
 		if (sinceLastShot >= 1 && currentBolt == null && active) {

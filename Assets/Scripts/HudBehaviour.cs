@@ -18,9 +18,17 @@ public class HudBehaviour : MonoBehaviour {
 		eventSystem.SetActive (false);
 	}
 
-	public void Enable () {
+	public void Enable (bool gameOver) {
 		canvas.enabled = true;
 		eventSystem.SetActive (true);
+
+		transform.FindChild ("ResumeButton").gameObject.SetActive (!gameOver);
+		transform.FindChild ("PlayAgainButton").gameObject.SetActive (gameOver);
+	}
+
+	public void Disable () {
+		canvas.enabled = false;
+		eventSystem.SetActive (false);
 	}
 
 	public void SetWinText (string text, Color color) {
@@ -35,5 +43,11 @@ public class HudBehaviour : MonoBehaviour {
 
 	public void OnPlayAgainButtonClicked () {
 		SceneManager.LoadScene (SceneManager.GetActiveScene ().buildIndex);
+	}
+
+	public void OnResumeButtonClicked () {
+		GameObject.FindWithTag ("GameController").GetComponent<GameController> ().Pause ();
+		InputManager.GetShootButton ().Cancel ();
+		InputManager.GetAimButton ().Cancel ();
 	}
 }
