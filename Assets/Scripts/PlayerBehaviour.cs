@@ -5,6 +5,8 @@ using UnityEngine;
 // The player behaviour
 public class PlayerBehaviour : MonoBehaviour {
 
+	public GameController gameController;
+
 	// The player's head
 	public Transform head;
 
@@ -115,15 +117,18 @@ public class PlayerBehaviour : MonoBehaviour {
 	// This player was hit by a bolt
 	public void Hit (BoltBehaviour bolt, GameObject at) {
 		if (bolt.hit) {
-			Debug.Log ("This bolt has hit something before; it's invalid. Discarding...");
+			Debug.Log ("[Crossbowman] This bolt has hit something before; it's invalid. Discarding...");
 			return;
 		}
+
+		gameController.hit = true;
 
 		float damage = bolt.damage;
 
 		switch (at.name) {
 		case "Head":
 			damage *= 3;
+			gameController.headshot = true;
 			break;
 		case "LowerTorso":
 			damage *= 1.1f;
@@ -149,14 +154,14 @@ public class PlayerBehaviour : MonoBehaviour {
 			break;
 		}
 
-		Debug.LogFormat ("{0} was hit at {1} for {2} damage", name, at.name, damage);
+		Debug.LogFormat ("[Crossbowman] {0} was hit at {1} for {2} damage", name, at.name, damage);
 
 		health -= damage;
 		if (health <= 0) {
-			Debug.LogFormat ("{0} is dead", name);
+			Debug.LogFormat ("[Crossbowman] {0} is dead", name);
 			animator.SetTrigger ("dead");
 		} else {
-			Debug.LogFormat ("{0} is hurt", name);
+			Debug.LogFormat ("[Crossbowman] {0} is hurt", name);
 			animator.SetTrigger ("hurt");
 		}
 	}

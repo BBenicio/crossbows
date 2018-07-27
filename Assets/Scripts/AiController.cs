@@ -105,7 +105,7 @@ public class AiController : MonoBehaviour {
 			verticalAxis = UpdateXAngle ();
 
 			if (Mathf.Abs(horizontalAxis) <= Mathf.Abs(attemptError) && Mathf.Abs(verticalAxis) <= Mathf.Abs(attemptError)) {
-				Debug.LogFormat ("Distance = {0};\nAttempt Error = {1};", attemptDistance, attemptError);
+				Debug.LogFormat ("[Crossbowman] Distance = {0};\nAttempt Error = {1};", attemptDistance, attemptError);
 
 				input.ShootButtonDown ();
 				shot = true;

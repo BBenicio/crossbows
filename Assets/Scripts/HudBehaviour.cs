@@ -14,7 +14,7 @@ public class HudBehaviour : MonoBehaviour {
 		canvas = GetComponent<Canvas> ();
 		canvas.enabled = false;
 
-		eventSystem = transform.FindChild ("EventSystem").gameObject;
+		eventSystem = transform.Find ("EventSystem").gameObject;
 		eventSystem.SetActive (false);
 	}
 
@@ -22,8 +22,8 @@ public class HudBehaviour : MonoBehaviour {
 		canvas.enabled = true;
 		eventSystem.SetActive (true);
 
-		transform.FindChild ("ResumeButton").gameObject.SetActive (!gameOver);
-		transform.FindChild ("PlayAgainButton").gameObject.SetActive (gameOver);
+		transform.Find ("ResumeButton").gameObject.SetActive (!gameOver);
+		transform.Find ("PlayAgainButton").gameObject.SetActive (gameOver);
 	}
 
 	public void Disable () {
@@ -38,10 +38,14 @@ public class HudBehaviour : MonoBehaviour {
 	}
 
 	public void OnMenuButtonClicked () {
+		GameObject.FindWithTag ("GameController").GetComponent<GameController> ().GameOver ();
+
 		SceneManager.LoadScene ("menu");
 	}
 
 	public void OnPlayAgainButtonClicked () {
+		GameObject.FindWithTag ("GameController").GetComponent<GameController> ().GameOver ();
+
 		SceneManager.LoadScene (SceneManager.GetActiveScene ().buildIndex);
 	}
 

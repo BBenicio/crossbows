@@ -1,0 +1,38 @@
+<linker>
+	<assembly fullname="Assembly-CSharp">
+		<type fullname="MenuHandler">
+			<method name="OnFullscreenChanged"/>
+			<method name="OnSoundChanged"/>
+			<method name="OnTutorialChanged"/>
+			<method name="BackButtonClicked"/>
+			<method name="OnQualityChanged"/>
+			<method name="OptionsButtonClicked"/>
+			<method name="VersusButtonClicked"/>
+			<method name="QuitButtonClicked"/>
+			<method name="ResetButtonClicked"/>
+			<method name="SinglePlayerButtonClicked"/>
+		</type>
+		<type fullname="InputManager">
+			<method name="ShootButtonDown"/>
+			<method name="ShootButtonUp"/>
+			<method name="ShootButtonOut"/>
+			<method name="AimButtonDown"/>
+			<method name="AimButtonUp"/>
+			<method name="AimButtonOut"/>
+			<method name="ShootButtonDown"/>
+			<method name="ShootButtonUp"/>
+			<method name="ShootButtonOut"/>
+			<method name="AimButtonDown"/>
+			<method name="AimButtonUp"/>
+			<method name="AimButtonOut"/>
+		</type>
+		<type fullname="HudBehaviour">
+			<method name="OnMenuButtonClicked"/>
+			<method name="OnPlayAgainButtonClicked"/>
+			<method name="OnResumeButtonClicked"/>
+			<method name="OnMenuButtonClicked"/>
+			<method name="OnPlayAgainButtonClicked"/>
+			<method name="OnResumeButtonClicked"/>
+		</type>
+	</assembly>
+</linker>

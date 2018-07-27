@@ -4,12 +4,24 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+#if UNITY_ANDROID
+using GoogleMobileAds.Api;
+using GooglePlayGames;
+using GooglePlayGames.BasicApi;
+using UnityEngine.SocialPlatforms;
+#endif
+
 #if UNITY_ADS
 using UnityEngine.Advertisements;
 #endif
 
 // The main menu and options handler
 public class MenuHandler : MonoBehaviour {
+	#if UNITY_ANDROID
+	private static bool adsInitialized = false;
+	private static bool playGamesInitialized = false;
+	private static bool signedIn = false;
+	#endif
 
 	// The transition
 	private Transition transition;
@@ -27,9 +39,15 @@ public class MenuHandler : MonoBehaviour {
 	public Slider soundSlider;
 	public Toggle fullscreenToggle;
 	public Toggle tutorialToggle;
+	public Button playGamesButton;
+
+	public Button signInButton;
+	public Button leaderboardsButton;
+	public Button achievementsButton;
 
 	// Going to options?
 	private bool options;
+	private bool playGames;
 
 	private void Load () {
 		//Data.sensitivity = PlayerPrefs.GetFloat ("sensitivity", Data.sensitivity);
@@ -43,6 +61,25 @@ public class MenuHandler : MonoBehaviour {
 
 		fullscreenToggle.isOn = Screen.fullScreen;
 		tutorialToggle.isOn = Data.tutorial;
+	}
+
+	private void SignInToPlayGames () {
+		#if UNITY_ANDROID
+		Social.localUser.Authenticate((bool success) => {
+			if (success) {
+				Debug.Log ("[Crossbowman] User authenticated! " + PlayGamesPlatform.Instance.GetUserDisplayName ());
+				leaderboardsButton.interactable = true;
+				achievementsButton.interactable = true;
+				signInButton.GetComponentInChildren<Text> ().text = "Sign Out";
+
+				signedIn = true;
+			} else {
+				Debug.Log ("[Crossbowman] User not authenticated!");
+
+				signedIn = false;
+			}
+		});
+		#endif
 	}
 
 	void Start () {
@@ -62,12 +99,34 @@ public class MenuHandler : MonoBehaviour {
 
 		#if UNITY_ANDROID
 		fullscreenToggle.gameObject.SetActive (false);
-		#endif
 
-		#if UNITY_ADS
-		if (Data.hasPlayed && Advertisement.IsReady () && Random.value <= 0.4f) {
-			Advertisement.Show ();
+		if (!adsInitialized) {
+			Debug.Log ("[Crossbowman] Initializing ads");
+			MobileAds.Initialize("ca-app-pub-2833633163238735~6400467607");
+			adsInitialized = true;
 		}
+
+		if (!playGamesInitialized) {
+			PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder().Build();
+			PlayGamesPlatform.DebugLogEnabled = true;
+			PlayGamesPlatform.InitializeInstance(config);
+			PlayGamesPlatform.Activate();
+
+			PlayGamesPlatform.Instance.SetDefaultLeaderboardForUI (GPGSIds.leaderboard_headshots);
+
+			SignInToPlayGames ();
+
+			playGamesInitialized = true;
+		}
+
+		if (signedIn) {
+			Debug.Log ("[Crossbowman] User is already authenticated! " + PlayGamesPlatform.Instance.GetUserDisplayName ());
+			leaderboardsButton.interactable = true;
+			achievementsButton.interactable = true;
+			signInButton.GetComponentInChildren<Text> ().text = "Sign Out";
+		}
+		#else
+		playGamesButton.gameObject.SetActive (false);
 		#endif
 	}
 
@@ -78,15 +137,17 @@ public class MenuHandler : MonoBehaviour {
 			Application.Quit ();
 		} else if (back && options) {
 			BackButtonClicked ();
+		} else if (back && playGames) {
+			PGBackButtonClicked ();
 		}
 
 		if (transition != null && transition.isTransitioning) {
 			transition.Update ();
 			if (!transition.isTransitioning && startingVersus) {
-				Debug.Log ("Loading local_versus");
+				Debug.Log ("[Crossbowman] Loading local_versus");
 				SceneManager.LoadScene ("local_versus");
 			} else if (!transition.isTransitioning && startingSingle) {
-				Debug.Log ("Loading single_player");
+				Debug.Log ("[Crossbowman] Loading single_player");
 				SceneManager.LoadScene ("single_player");
 			}
 		}
@@ -146,6 +207,60 @@ public class MenuHandler : MonoBehaviour {
 		Application.Quit ();
 	}
 
+	public void PlayGamesButtonClicked () {
+		ButtonClicked ();
+
+		panelAnimator.SetBool ("playGames", true);
+		playGames = true;
+	}
+
+	public void PGSignInButtonClicked () {
+		ButtonClicked ();
+
+		#if UNITY_ANDROID
+		if (signedIn) {
+			Debug.Log ("[Crossbowman] Sign in button clicked; signing out");
+			PlayGamesPlatform.Instance.SignOut ();
+
+			leaderboardsButton.interactable = false;
+			achievementsButton.interactable = false;
+			signInButton.GetComponentInChildren<Text> ().text = "Sign In";
+		} else {
+			Debug.Log ("[Crossbowman] Sign in button clicked; signing in");
+			SignInToPlayGames ();
+		}
+		#endif
+	}
+
+	public void PGLeaderboardsButtonClicked () {
+		ButtonClicked ();
+		Debug.Log ("[Crossbowman] Leaderboards button clicked");
+
+		#if UNITY_ANDROID
+		PlayGamesPlatform.Instance.ShowLeaderboardUI(GPGSIds.leaderboard_headshots, (UIStatus status) => {
+			Debug.Log ("[Crossbowman] ShowLeaderboardUI: " + status.ToString ());
+		});
+		#endif
+	}
+
+	public void PGAchievementsButtonClicked () {
+		ButtonClicked ();
+		Debug.Log ("[Crossbowman] Achievements button clicked");
+
+		#if UNITY_ANDROID
+		PlayGamesPlatform.Instance.ShowAchievementsUI ((UIStatus status) => {
+			Debug.Log ("[Crossbowman] ShowAchievementUI: " + status.ToString ());
+		});
+		#endif
+	}
+
+	public void PGBackButtonClicked () {
+		ButtonClicked ();
+
+		panelAnimator.SetBool ("playGames", false);
+		playGames = false;
+	}
+
 	private void SetFullscreen(bool fs) {
 		if (Screen.resolutions == null || Screen.resolutions.Length == 0) {
 			return;
@@ -153,10 +268,10 @@ public class MenuHandler : MonoBehaviour {
 
 		Resolution r = Screen.resolutions [Screen.resolutions.Length - 1];
 		if (!fs) {
-			Debug.Log ("OnFullscreenChanged(): windowed 960x540");
+			Debug.Log ("[Crossbowman] OnFullscreenChanged(): windowed 960x540");
 			Screen.SetResolution (960, 540, false);
 		} else {
-			Debug.LogFormat ("OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
+			Debug.LogFormat ("[Crossbowman] OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
 			Screen.SetResolution (r.width, r.height, true);
 		}
 	}
@@ -217,13 +332,13 @@ public class MenuHandler : MonoBehaviour {
 
 		Resolution r = Screen.resolutions [Screen.resolutions.Length - 1];
 		if (!fs) {
-			Debug.Log ("OnFullscreenChanged(): windowed 960x540");
+			Debug.Log ("[Crossbowman] OnFullscreenChanged(): windowed 960x540");
 			Screen.SetResolution (960, 540, false);
 		} else {
-			Debug.LogFormat ("OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
+			Debug.LogFormat ("[Crossbowman] OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
 			Screen.SetResolution (r.width, r.height, true);
 		}*/
-		Debug.LogFormat ("OnFullscreenChanged({0})", fs);
+		Debug.LogFormat ("[Crossbowman] OnFullscreenChanged({0})", fs);
 	}
 
 	public void OnSoundChanged (float sound) {

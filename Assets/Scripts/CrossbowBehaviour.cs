@@ -100,6 +100,8 @@ public class CrossbowBehaviour : MonoBehaviour {
 			#if UNITY_ANDROID
 			GameObject.FindWithTag ("GameController").GetComponent<InputManager> ().ShootButtonOut ();
 			#endif
+
+			gameController.noScope = !aiming;
 		} else if (active && InputManager.GetAimButton ().justPressed && !animator.IsInTransition (0) && !gameController.gameOver) {
 			aiming = !aiming;
 			animator.SetBool ("aim", aiming);
@@ -134,7 +136,7 @@ public class CrossbowBehaviour : MonoBehaviour {
 				transform.localRotation = Quaternion.Euler (readyRotation);
 			}
 		} else if (!GetComponent<Rigidbody> ().isKinematic) {
-			animator.Stop ();
+			animator.enabled = false;
 		}
 	}
 }

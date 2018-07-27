@@ -111,7 +111,7 @@ public class InputManager : MonoBehaviour {
 	// Take care of touch input
 	void MobileInput () {
 		if (Input.touchCount > 0) {
-			Debug.LogFormat ("Touch count = {0}", Input.touchCount);
+			Debug.LogFormat ("[Crossbowman] Touch count = {0}", Input.touchCount);
 		}
 
 		SetAxes (0, 0);
@@ -119,7 +119,7 @@ public class InputManager : MonoBehaviour {
 		foreach (Touch touch in Input.touches) {
 			if (touch.phase == TouchPhase.Moved && !(shootButton.pressed || aimButton.pressed)) {
 				SetAxes (touch.deltaPosition.normalized);
-				Debug.LogFormat ("Touch moved {0}", touch.deltaPosition);
+				Debug.LogFormat ("[Crossbowman] Touch moved {0}", touch.deltaPosition);
 			}
 		}
 	}
@@ -158,7 +158,7 @@ public class InputManager : MonoBehaviour {
 	// The shoot button was pressed (on mobile)
 	public void ShootButtonDown () {
 		if (!shootButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("Shoot pressed");
+			Debug.Log ("[Crossbowman] Shoot pressed");
 			shootButton.Press ();
 		}
 	}
@@ -166,7 +166,7 @@ public class InputManager : MonoBehaviour {
 	// The shoot button was released (on mobile)
 	public void ShootButtonUp () {
 		if (shootButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("Shoot released");
+			Debug.Log ("[Crossbowman] Shoot released");
 			shootButton.Release ();
 		}
 	}
@@ -179,7 +179,7 @@ public class InputManager : MonoBehaviour {
 	// The aim button was pressed (on mobile)
 	public void AimButtonDown () {
 		if (!aimButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("Aim pressed");
+			Debug.Log ("[Crossbowman] Aim pressed");
 			aimButton.Press ();
 		}
 	}
@@ -187,7 +187,7 @@ public class InputManager : MonoBehaviour {
 	// The aim button was released (on mobile)
 	public void AimButtonUp () {
 		if (aimButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("Aim released");
+			Debug.Log ("[Crossbowman] Aim released");
 			aimButton.Release ();
 		}
 	}
