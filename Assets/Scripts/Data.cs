@@ -27,7 +27,7 @@ public class Data {
 
 	public static float AIAimingSensitivity {
 		get {
-			return 0.05f * AISensitivity;
+			return 0.4f;
 		}
 	}
 
@@ -65,4 +65,8 @@ public class Data {
 	public static bool hasPlayed = false;
 
 	public static bool tutorial = true;
+
+	#if UNITY_ANDROID
+	public static bool signedIn = true;
+	#endif
 }

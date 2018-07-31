@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 public class HudBehaviour : MonoBehaviour {
 	public Text winText;
 
+	public string menuSceneName = "menu";
+	public bool enablePlayAgain = true;
+
 	private Canvas canvas;
 	private GameObject eventSystem;
 
@@ -23,7 +26,7 @@ public class HudBehaviour : MonoBehaviour {
 		eventSystem.SetActive (true);
 
 		transform.Find ("ResumeButton").gameObject.SetActive (!gameOver);
-		transform.Find ("PlayAgainButton").gameObject.SetActive (gameOver);
+		transform.Find ("PlayAgainButton").gameObject.SetActive (enablePlayAgain && gameOver);
 	}
 
 	public void Disable () {
@@ -40,7 +43,7 @@ public class HudBehaviour : MonoBehaviour {
 	public void OnMenuButtonClicked () {
 		GameObject.FindWithTag ("GameController").GetComponent<GameController> ().GameOver ();
 
-		SceneManager.LoadScene ("menu");
+		SceneManager.LoadScene (menuSceneName);
 	}
 
 	public void OnPlayAgainButtonClicked () {

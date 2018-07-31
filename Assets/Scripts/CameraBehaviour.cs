@@ -50,6 +50,8 @@ public class CameraBehaviour : MonoBehaviour {
 
 		followBoltAfterTransition = false;
 		Time.timeScale = 0.5f;
+
+		GameController.mobileControl.SetActive (false);
 	}
 	
 	void Update () {

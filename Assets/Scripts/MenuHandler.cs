@@ -17,12 +17,6 @@ using UnityEngine.Advertisements;
 
 // The main menu and options handler
 public class MenuHandler : MonoBehaviour {
-	#if UNITY_ANDROID
-	private static bool adsInitialized = false;
-	private static bool playGamesInitialized = false;
-	private static bool signedIn = false;
-	#endif
-
 	// The transition
 	private Transition transition;
 
@@ -49,41 +43,30 @@ public class MenuHandler : MonoBehaviour {
 	private bool options;
 	private bool playGames;
 
-	private void Load () {
-		//Data.sensitivity = PlayerPrefs.GetFloat ("sensitivity", Data.sensitivity);
-		//Data.aimingSensitivity = PlayerPrefs.GetFloat ("aimingSensitivity", Data.aimingSensitivity);
-		Data.tutorial = PlayerPrefs.GetInt ("tutorial", 1) == 1 && Data.tutorial;
-
-		OnQualityChanged (PlayerPrefs.GetInt ("quality", Data.quality));
-		QualitySettings.SetQualityLevel (Data.quality);
-
-		OnSoundChanged (PlayerPrefs.GetFloat ("sound", Data.sound));
-
-		fullscreenToggle.isOn = Screen.fullScreen;
-		tutorialToggle.isOn = Data.tutorial;
-	}
-
 	private void SignInToPlayGames () {
 		#if UNITY_ANDROID
 		Social.localUser.Authenticate((bool success) => {
 			if (success) {
-				Debug.Log ("[Crossbowman] User authenticated! " + PlayGamesPlatform.Instance.GetUserDisplayName ());
+				Logger.LogInfo (string.Format ("User authenticated! Name: '{0}'", PlayGamesPlatform.Instance.GetUserDisplayName ()));
 				leaderboardsButton.interactable = true;
 				achievementsButton.interactable = true;
 				signInButton.GetComponentInChildren<Text> ().text = "Sign Out";
 
-				signedIn = true;
+				Data.signedIn = true;
 			} else {
-				Debug.Log ("[Crossbowman] User not authenticated!");
+				Logger.LogWarning ("User not authenticated!");
 
-				signedIn = false;
+				Data.signedIn = false;
 			}
 		});
 		#endif
 	}
 
 	void Start () {
-		Load ();
+		Initializer.Load ();
+
+		fullscreenToggle.isOn = Screen.fullScreen;
+		tutorialToggle.isOn = Data.tutorial;
 
 		List<Dropdown.OptionData> options = new List<Dropdown.OptionData> ();
 		foreach (string name in QualitySettings.names) {
@@ -100,27 +83,14 @@ public class MenuHandler : MonoBehaviour {
 		#if UNITY_ANDROID
 		fullscreenToggle.gameObject.SetActive (false);
 
-		if (!adsInitialized) {
-			Debug.Log ("[Crossbowman] Initializing ads");
-			MobileAds.Initialize("ca-app-pub-2833633163238735~6400467607");
-			adsInitialized = true;
-		}
+		bool trySignIn = !Initializer.playGamesInitialized && Data.signedIn;
 
-		if (!playGamesInitialized) {
-			PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder().Build();
-			PlayGamesPlatform.DebugLogEnabled = true;
-			PlayGamesPlatform.InitializeInstance(config);
-			PlayGamesPlatform.Activate();
+		Initializer.InitAndroid ();
 
-			PlayGamesPlatform.Instance.SetDefaultLeaderboardForUI (GPGSIds.leaderboard_headshots);
-
+		if (trySignIn) {
 			SignInToPlayGames ();
-
-			playGamesInitialized = true;
-		}
-
-		if (signedIn) {
-			Debug.Log ("[Crossbowman] User is already authenticated! " + PlayGamesPlatform.Instance.GetUserDisplayName ());
+		} else if (Data.signedIn) {
+			Logger.LogInfo (string.Format ("User is already authenticated! Name: '{0}'", PlayGamesPlatform.Instance.GetUserDisplayName ()));
 			leaderboardsButton.interactable = true;
 			achievementsButton.interactable = true;
 			signInButton.GetComponentInChildren<Text> ().text = "Sign Out";
@@ -144,10 +114,10 @@ public class MenuHandler : MonoBehaviour {
 		if (transition != null && transition.isTransitioning) {
 			transition.Update ();
 			if (!transition.isTransitioning && startingVersus) {
-				Debug.Log ("[Crossbowman] Loading local_versus");
+				Logger.LogInfo ("Loading local_versus");
 				SceneManager.LoadScene ("local_versus");
 			} else if (!transition.isTransitioning && startingSingle) {
-				Debug.Log ("[Crossbowman] Loading single_player");
+				Logger.LogInfo ("Loading single_player");
 				SceneManager.LoadScene ("single_player");
 			}
 		}
@@ -172,6 +142,12 @@ public class MenuHandler : MonoBehaviour {
 		panelAnimator.SetTrigger ("play");
 
 		Data.hasPlayed = true;
+	}
+
+	public void MultiplayerButtonClicked () {
+		ButtonClicked ();
+
+		SceneManager.LoadScene ("multiplayer_menu");
 	}
 
 	// Single player button pressed, make transition and start game
@@ -218,15 +194,17 @@ public class MenuHandler : MonoBehaviour {
 		ButtonClicked ();
 
 		#if UNITY_ANDROID
-		if (signedIn) {
-			Debug.Log ("[Crossbowman] Sign in button clicked; signing out");
+		if (Data.signedIn) {
+			Logger.LogInfo ("Sign out button clicked");
 			PlayGamesPlatform.Instance.SignOut ();
 
 			leaderboardsButton.interactable = false;
 			achievementsButton.interactable = false;
 			signInButton.GetComponentInChildren<Text> ().text = "Sign In";
+
+			Data.signedIn = false;
 		} else {
-			Debug.Log ("[Crossbowman] Sign in button clicked; signing in");
+			Logger.LogInfo ("Sign in button clicked");
 			SignInToPlayGames ();
 		}
 		#endif
@@ -234,22 +212,22 @@ public class MenuHandler : MonoBehaviour {
 
 	public void PGLeaderboardsButtonClicked () {
 		ButtonClicked ();
-		Debug.Log ("[Crossbowman] Leaderboards button clicked");
+		Logger.LogInfo ("Leaderboards button clicked");
 
 		#if UNITY_ANDROID
-		PlayGamesPlatform.Instance.ShowLeaderboardUI(GPGSIds.leaderboard_headshots, (UIStatus status) => {
-			Debug.Log ("[Crossbowman] ShowLeaderboardUI: " + status.ToString ());
+		PlayGamesPlatform.Instance.ShowLeaderboardUI (null, (UIStatus status) => {
+			Logger.LogInfo (string.Format ("ShowLeaderboardUI: {0}", status));
 		});
 		#endif
 	}
 
 	public void PGAchievementsButtonClicked () {
 		ButtonClicked ();
-		Debug.Log ("[Crossbowman] Achievements button clicked");
+		Logger.LogInfo ("Achievements button clicked");
 
 		#if UNITY_ANDROID
 		PlayGamesPlatform.Instance.ShowAchievementsUI ((UIStatus status) => {
-			Debug.Log ("[Crossbowman] ShowAchievementUI: " + status.ToString ());
+			Logger.LogInfo (string.Format ("ShowAchievementUI: {0}", status));
 		});
 		#endif
 	}
@@ -268,10 +246,10 @@ public class MenuHandler : MonoBehaviour {
 
 		Resolution r = Screen.resolutions [Screen.resolutions.Length - 1];
 		if (!fs) {
-			Debug.Log ("[Crossbowman] OnFullscreenChanged(): windowed 960x540");
+			Logger.LogInfo ("OnFullscreenChanged(): windowed 960x540");
 			Screen.SetResolution (960, 540, false);
 		} else {
-			Debug.LogFormat ("[Crossbowman] OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
+			Logger.LogInfo (string.Format ("OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height));
 			Screen.SetResolution (r.width, r.height, true);
 		}
 	}
@@ -297,6 +275,11 @@ public class MenuHandler : MonoBehaviour {
 		PlayerPrefs.SetInt ("quality", Data.quality);
 		PlayerPrefs.SetFloat ("sound", Data.sound);
 		PlayerPrefs.SetInt ("tutorial", Data.tutorial ? 1 : 0);
+
+		#if UNITY_ANDROID
+		PlayerPrefs.SetInt ("signedIn", Data.signedIn ? 1 : 0);
+		#endif
+
 		PlayerPrefs.Save ();
 	}
 
@@ -332,13 +315,13 @@ public class MenuHandler : MonoBehaviour {
 
 		Resolution r = Screen.resolutions [Screen.resolutions.Length - 1];
 		if (!fs) {
-			Debug.Log ("[Crossbowman] OnFullscreenChanged(): windowed 960x540");
+			Logger.LogInfo ("OnFullscreenChanged(): windowed 960x540");
 			Screen.SetResolution (960, 540, false);
 		} else {
-			Debug.LogFormat ("[Crossbowman] OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height);
+			Logger.LogInfo (string.Format ("OnFullscreenChanged(): fullscreen {0}x{1}", r.width, r.height));
 			Screen.SetResolution (r.width, r.height, true);
 		}*/
-		Debug.LogFormat ("[Crossbowman] OnFullscreenChanged({0})", fs);
+		Logger.LogInfo (string.Format ("OnFullscreenChanged({0})", fs));
 	}
 
 	public void OnSoundChanged (float sound) {

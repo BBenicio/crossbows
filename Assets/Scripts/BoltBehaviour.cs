@@ -91,7 +91,7 @@ public class BoltBehaviour : MonoBehaviour {
 		bool hitCrossbow = collider.GetComponentInParent<CrossbowBehaviour> () != null;
 
 		if (hitCrossbow) {
-			Debug.Log ("[Crossbowman] Bolt hit a crossbow, do not call GameController.BoltHit()");
+			Logger.LogInfo ("Bolt hit a crossbow, do not call GameController.BoltHit()");
 		} else {
 			gameController.BoltHit ();
 		}

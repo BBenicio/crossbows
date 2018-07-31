@@ -64,6 +64,42 @@ public class CrossbowBehaviour : MonoBehaviour {
 		animator = GetComponent<Animator> ();
 	}
 
+	public void Aim () {
+		Logger.LogInfo ("Crossbow aiming");
+
+		aiming = !aiming;
+		animator.SetBool ("aim", aiming);
+
+		cameraBehaviour.TransitionTo (aiming ? cameraBehaviour.aimGuide : cameraBehaviour.playerGuide, false, true, false);
+		if (aiming) {
+			transform.SetParent (aimingGuide, true);
+		} 
+	}
+
+	public void Shoot () {
+		currentBolt.GetComponent<BoltBehaviour> ().Shoot (-transform.right * force);
+
+		currentBolt = null;
+
+		sinceLastShot = 0;
+
+		animator.SetTrigger ("shoot");
+
+		active = false;
+
+		GameObject.FindWithTag ("GameController").GetComponent<MouseLook> ().ResetRotation ();
+
+		AudioSource shootAudio = GetComponent<AudioSource> ();
+		shootAudio.volume = Data.sound;
+		shootAudio.Play ();
+
+		#if UNITY_ANDROID
+		GameObject.FindWithTag ("GameController").GetComponent<InputManager> ().ShootButtonOut ();
+		#endif
+
+		gameController.noScope = !aiming;
+	}
+
 	void Update () {
 		if (gameController.paused) {
 			return;
@@ -81,35 +117,11 @@ public class CrossbowBehaviour : MonoBehaviour {
 		}
 
 		if (active && InputManager.GetShootButton ().justPressed && currentBolt != null && !gameController.gameOver) {
-			currentBolt.GetComponent<BoltBehaviour> ().Shoot (-transform.right * force);
-
-			currentBolt = null;
-
-			sinceLastShot = 0;
-
-			animator.SetTrigger ("shoot");
-
-			active = false;
-
-			GameObject.FindWithTag ("GameController").GetComponent<MouseLook> ().ResetRotation ();
-
-			AudioSource shootAudio = GetComponent<AudioSource> ();
-			shootAudio.volume = Data.sound;
-			shootAudio.Play ();
-
-			#if UNITY_ANDROID
-			GameObject.FindWithTag ("GameController").GetComponent<InputManager> ().ShootButtonOut ();
-			#endif
-
-			gameController.noScope = !aiming;
+			Shoot ();
 		} else if (active && InputManager.GetAimButton ().justPressed && !animator.IsInTransition (0) && !gameController.gameOver) {
-			aiming = !aiming;
-			animator.SetBool ("aim", aiming);
-
-			cameraBehaviour.TransitionTo (aiming ? cameraBehaviour.aimGuide : cameraBehaviour.playerGuide, false, true, false);
-			if (aiming) {
-				transform.SetParent (aimingGuide, true);
-			} 
+			Aim ();
+		} else if (InputManager.GetAimButton ().justPressed) {
+			Logger.LogInfo (string.Format ("Crossbow {0}, not aiming", !active ? "inactive" : "in transition"));
 		}
 
 		/*/ DEBUG //

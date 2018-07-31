@@ -91,10 +91,25 @@ public class InputManager : MonoBehaviour {
 	// Is it the ai's turn?
 	public bool aiTurn;
 
+	#if UNITY_ANDROID
+	private bool isMP = false;
+	private Multiplayer.MPGameController controller = null;
+	#endif
+	private
+
 	void Awake () {
 		instance = this;
 
 		cameraBehaviour = GameObject.FindWithTag ("MainCamera").GetComponent<CameraBehaviour> ();
+
+		#if UNITY_ANDROID
+		isMP = GameObject.Find ("RTMP");
+		#endif
+	}
+
+	void Start () {
+		if (isMP)
+			controller = GetComponent<Multiplayer.MPGameController> ();
 	}
 
 	void Update () {
@@ -110,16 +125,11 @@ public class InputManager : MonoBehaviour {
 	#if UNITY_ANDROID
 	// Take care of touch input
 	void MobileInput () {
-		if (Input.touchCount > 0) {
-			Debug.LogFormat ("[Crossbowman] Touch count = {0}", Input.touchCount);
-		}
-
 		SetAxes (0, 0);
 
 		foreach (Touch touch in Input.touches) {
 			if (touch.phase == TouchPhase.Moved && !(shootButton.pressed || aimButton.pressed)) {
 				SetAxes (touch.deltaPosition.normalized);
-				Debug.LogFormat ("[Crossbowman] Touch moved {0}", touch.deltaPosition);
 			}
 		}
 	}
@@ -158,16 +168,26 @@ public class InputManager : MonoBehaviour {
 	// The shoot button was pressed (on mobile)
 	public void ShootButtonDown () {
 		if (!shootButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("[Crossbowman] Shoot pressed");
+			Logger.LogInfo ("Shoot pressed");
 			shootButton.Press ();
+
+			#if UNITY_ANDROID
+			if (isMP)
+				controller.SendShoot (true);
+			#endif
 		}
 	}
 
 	// The shoot button was released (on mobile)
 	public void ShootButtonUp () {
 		if (shootButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("[Crossbowman] Shoot released");
+			Logger.LogInfo ("Shoot released");
 			shootButton.Release ();
+
+			#if UNITY_ANDROID
+			if (isMP)
+				controller.SendShoot (false);
+			#endif
 		}
 	}
 
@@ -179,16 +199,26 @@ public class InputManager : MonoBehaviour {
 	// The aim button was pressed (on mobile)
 	public void AimButtonDown () {
 		if (!aimButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("[Crossbowman] Aim pressed");
+			Logger.LogInfo ("Aim pressed");
 			aimButton.Press ();
+
+			#if UNITY_ANDROID
+			if (isMP)
+				controller.SendAim (true);
+			#endif
 		}
 	}
 
 	// The aim button was released (on mobile)
 	public void AimButtonUp () {
 		if (aimButton.pressed && !cameraBehaviour.locked) {
-			Debug.Log ("[Crossbowman] Aim released");
+			Logger.LogInfo ("Aim released");
 			aimButton.Release ();
+
+			#if UNITY_ANDROID
+			if (isMP)
+				controller.SendAim (false);
+			#endif
 		}
 	}
 

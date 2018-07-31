@@ -24,13 +24,15 @@
 
 public static class GPGSIds
 {
-        public const string achievement_close_contest = "CgkIn8yU3tkGEAIQBQ"; // <GPGSID>
+        public const string leaderboard_no_scope_distance = "CgkIn8yU3tkGEAIQCQ"; // <GPGSID>
         public const string achievement_dominator = "CgkIn8yU3tkGEAIQAw"; // <GPGSID>
-        public const string achievement_no_scope = "CgkIn8yU3tkGEAIQBg"; // <GPGSID>
-        public const string achievement_headshot = "CgkIn8yU3tkGEAIQAQ"; // <GPGSID>
-        public const string achievement_no_scope_headshot = "CgkIn8yU3tkGEAIQBw"; // <GPGSID>
+        public const string achievement_head_hunter = "CgkIn8yU3tkGEAIQCg"; // <GPGSID>
         public const string achievement_dominated = "CgkIn8yU3tkGEAIQBA"; // <GPGSID>
-        public const string leaderboard_headshots = "CgkIn8yU3tkGEAIQAg"; // <GPGSID>
+        public const string achievement_no_scope_headshot = "CgkIn8yU3tkGEAIQBw"; // <GPGSID>
+        public const string leaderboard_headshot_distance = "CgkIn8yU3tkGEAIQAg"; // <GPGSID>
+        public const string achievement_no_scope = "CgkIn8yU3tkGEAIQBg"; // <GPGSID>
+        public const string achievement_close_contest = "CgkIn8yU3tkGEAIQBQ"; // <GPGSID>
+        public const string achievement_headshot = "CgkIn8yU3tkGEAIQAQ"; // <GPGSID>
 
 }
 

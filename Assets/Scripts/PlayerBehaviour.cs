@@ -117,7 +117,7 @@ public class PlayerBehaviour : MonoBehaviour {
 	// This player was hit by a bolt
 	public void Hit (BoltBehaviour bolt, GameObject at) {
 		if (bolt.hit) {
-			Debug.Log ("[Crossbowman] This bolt has hit something before; it's invalid. Discarding...");
+			Logger.LogInfo ("This bolt has hit something before; it's invalid. Discarding...");
 			return;
 		}
 
@@ -154,14 +154,14 @@ public class PlayerBehaviour : MonoBehaviour {
 			break;
 		}
 
-		Debug.LogFormat ("[Crossbowman] {0} was hit at {1} for {2} damage", name, at.name, damage);
+		Logger.LogInfo (string.Format ("{0} was hit at {1} for {2} damage", name, at.name, damage));
 
 		health -= damage;
 		if (health <= 0) {
-			Debug.LogFormat ("[Crossbowman] {0} is dead", name);
+			Logger.LogInfo (string.Format ("{0} is dead", name));
 			animator.SetTrigger ("dead");
 		} else {
-			Debug.LogFormat ("[Crossbowman] {0} is hurt", name);
+			Logger.LogInfo (string.Format ("{0} is hurt", name));
 			animator.SetTrigger ("hurt");
 		}
 	}

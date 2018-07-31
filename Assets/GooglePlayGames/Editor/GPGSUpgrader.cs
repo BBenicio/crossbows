@@ -174,7 +174,7 @@ namespace GooglePlayGames.Editor
 
       foreach (string directory in obsoleteDirectories) {
         if (Directory.Exists (directory)) {
-          Debug.Log ("[Crossbowman] Deleting obsolete directory: " + directory);
+          Debug.Log ("Deleting obsolete directory: " + directory);
           Directory.Delete (directory, true);
         }
       }

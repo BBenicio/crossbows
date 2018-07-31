@@ -6,19 +6,20 @@ using UnityEngine.SceneManagement;
 
 #if UNITY_ANDROID
 using GoogleMobileAds.Api;
+using GooglePlayGames;
 #endif
 
 // Controls the gameplay
 public class GameController : MonoBehaviour {
 	#if UNITY_ANDROID
-	private static InterstitialAd interstitialAd = null;
+	protected static InterstitialAd interstitialAd = null;
 	#endif
 
 	// The name of the normal camera guide
-	private const string NORMAL_CAMERA_GUIDE_NAME = "Camera Guide (Normal)";
+	protected const string NORMAL_CAMERA_GUIDE_NAME = "Camera Guide (Normal)";
 
 	// The name of the aim camera guide
-	private const string AIMING_CAMERA_GUIDE_NAME = "Camera Guide (Aiming)";
+	protected const string AIMING_CAMERA_GUIDE_NAME = "Camera Guide (Aiming)";
 
 	// A handle to the mobile controller
 	public static GameObject mobileControl;
@@ -77,33 +78,34 @@ public class GameController : MonoBehaviour {
 	public bool headshot = false;
 	public bool hit = false;
 
-	private float aimButtonHitTime;
+	// PIQUE BRUNÃO
+	protected float aimButtonHitTime;
 
-	private bool aiming;
+	protected bool aiming;
 
 	// The current player's index
-	private int currentPlayer = 0;
+	protected int currentPlayer = 0;
 
 	// The main camera
-	private GameObject mainCamera;
+	protected GameObject mainCamera;
 
 	// The current crossbow's CrossbowBehaviour script
-	private CrossbowBehaviour crossbow;
+	protected CrossbowBehaviour crossbow;
 
 	// The MouseLook script
-	private MouseLook mouseLook;
+	protected MouseLook mouseLook;
 
 	// Should the next update switch the players?
 	// Has the current players turn ended?
-	private bool shouldSwitchPlayers;
+	protected bool shouldSwitchPlayers;
 
 	public bool paused;
 
 	// Has the game ended?
-	public bool gameOver { get; private set; }
+	public bool gameOver { get; protected set; }
 
 	// The next player's index
-	private int nextPlayer {
+	protected int nextPlayer {
 		get {
 			return (currentPlayer + 1) % 2;
 		}
@@ -123,13 +125,14 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Spawn the players
-	void SetupPlayers () {
+	protected virtual void SetupPlayers () {
 		players = new GameObject[2];
 
 		// Player 1 (blue)
 		players [0] = GameObject.Instantiate (playerPrefab, new Vector3 (0, 1, 0), new Quaternion ());
 		players [0].GetComponentInChildren<SkinnedMeshRenderer> ().material = blueMaterial;
 		players [0].GetComponent<PlayerBehaviour> ().gameController = this;
+		players [0].name = "Blue";
 
 		Vector3 pos = Random.onUnitSphere;
 		pos.y = 0;
@@ -143,8 +146,9 @@ public class GameController : MonoBehaviour {
 		players [1].transform.Rotate (Vector3.up, Random.Range (0, 360));
 		players [1].GetComponentInChildren<SkinnedMeshRenderer> ().material = redMaterial;
 		players [1].GetComponent<PlayerBehaviour> ().gameController = this;
+		players [1].name = "Red";
 
-		Debug.LogFormat ("[Crossbowman] Distance is {0}", Vector3.Distance(players[0].transform.position, players[1].transform.position));
+		Logger.LogInfo (string.Format ("Distance is {0}", Vector3.Distance (players [0].transform.position, players [1].transform.position)));
 
 		SetOutline (Color.clear, redColor);
 
@@ -155,7 +159,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Make the crossbows
-	void SetupCrossbows () {
+	protected void SetupCrossbows () {
 		CrossbowBehaviour prefabCrossbowBehaviour = crossbowPrefab.GetComponent<CrossbowBehaviour> ();
 
 		for (int i = 0; i < 2; ++i) {
@@ -171,7 +175,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Set the islands
-	void SetupIslands () {
+	protected virtual void SetupIslands () {
 		var val = Random.Range (0, 4);
 
 		MakeIsland ((val & 1) == 1 ? island2Prefab : island1Prefab, 0);
@@ -179,7 +183,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Create an individual island
-	void MakeIsland (GameObject islandPrefab, int player) {
+	protected void MakeIsland (GameObject islandPrefab, int player) {
 		Vector3 pos = players [player].transform.position;
 
 		var island = GameObject.Instantiate (islandPrefab, pos, Quaternion.Euler (-90, 0, 0));
@@ -192,7 +196,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Setup the camera for the current player
-	void SetupCamera () {
+	protected void SetupCamera () {
 		if (mainCamera == null) {
 			mainCamera = GameObject.FindWithTag ("MainCamera");
 		}
@@ -208,7 +212,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Setup the MouseLook for the current player
-	void SetupMouseLook () {
+	protected void SetupMouseLook () {
 		mouseLook = GetComponent<MouseLook> ();
 
 		mouseLook.player = players [currentPlayer];
@@ -219,7 +223,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Enable the mobile input only if on mobile
-	void SetupInput () {
+	protected virtual void SetupInput () {
 		mobileControl = GameObject.Find ("Mobile Control");
 		#if UNITY_ANDROID
 		mobileControl.SetActive(true);
@@ -255,9 +259,11 @@ public class GameController : MonoBehaviour {
 		if (InputManager.GetAimButton ().justPressed) {
 			aimButtonHitTime = Time.time;
 			aiming = !aiming;
-		} else if (InputManager.GetShootButton ().justPressed && aiming && crossbow.active) {
-			aiming = false;
-			aimButtonHitTime = Time.time;
+		} else if (InputManager.GetShootButton ().justPressed && crossbow.active) {
+			if (aiming) {
+				aiming = false;
+				aimButtonHitTime = Time.time;
+			}
 
 			if (nextPlayer == 0) {
 				SetOutline (Color.clear, redColor);
@@ -274,16 +280,10 @@ public class GameController : MonoBehaviour {
 				aimButtonHitTime = 0;
 			}
 		}
-
-		// DEBUG //
-		if (Input.GetKeyDown (KeyCode.R)) {
-			SceneManager.LoadScene (SceneManager.GetActiveScene ().buildIndex);
-		}
-		// DEBUG //
 	}
 
 	// Go back to the menu
-	public void Menu () {
+	public virtual void Menu () {
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
 
@@ -324,33 +324,48 @@ public class GameController : MonoBehaviour {
 	}
 
 	// A bolt hit something. A turn has ended.
-	public void BoltHit () {
+	public virtual void BoltHit () {
 		shouldSwitchPlayers = true;
 		shotByMainPlayer = currentPlayer == 0 && aiController != null;
 	}
 
 	// Set the outline for the players. Use Color.clear to hide
-	private void SetOutline (Color blue, Color red) {
+	protected void SetOutline (Color blue, Color red) {
 		blueMaterial.SetColor ("_OutlineColor", blue);
 		redMaterial.SetColor ("_OutlineColor", red);
 	}
 
 	// Switch to the next player or, if it's dead, end the game
-	public void SwitchPlayers () {
-		Debug.LogFormat ("[Crossbowman] Switching to player {0}", nextPlayer + 1);
+	public virtual void SwitchPlayers () {
+		Logger.LogInfo (string.Format ("Switching to player {0}", nextPlayer + 1));
 
 		currentPlayer = nextPlayer;
+
+		int distance = Mathf.RoundToInt(Vector3.Distance(players[0].transform.position, players[1].transform.position) * 10);
 
 		#if UNITY_ANDROID
 		if (shotByMainPlayer && noScope) {
 			if (hit) {
+				Social.ReportScore(distance, GPGSIds.leaderboard_no_scope_distance, (bool success) => {
+					if (success)
+						Logger.LogInfo (string.Format ("Leaderboard: No Scope {0} - Success", distance));
+					else
+						Logger.LogWarning (string.Format ("Leaderboard: No Scope {0} - Fail", distance));
+				});
+
 				Social.ReportProgress(GPGSIds.achievement_no_scope, 100, (bool success) => {
-					Debug.LogFormat ("[Crossbowman] Achievement: No scope # {0}", success);
+					if (success)
+						Logger.LogInfo ("Achievement: No Scope! - Success");
+					else
+						Logger.LogWarning ("Achievement: No Scope! - Fail");
 				});
 			}
 			if (headshot) {
 				Social.ReportProgress(GPGSIds.achievement_no_scope_headshot, 100, (bool success) => {
-					Debug.LogFormat ("[Crossbowman] Achievement: No scope headshot # {0}", success);
+					if (success)
+						Logger.LogInfo ("Achievement: No Scope Headshot! - Success");
+					else
+						Logger.LogWarning ("Achievement: No Scope Headshot! - Fail");
 				});
 			}
 		}
@@ -358,13 +373,16 @@ public class GameController : MonoBehaviour {
 
 		bool dead = players [currentPlayer].GetComponent<PlayerBehaviour> ().health <= 0;
 		if (dead) { // If the next player is dead enable the crossbow's colliders and rigidbody
-			Debug.LogFormat ("[Crossbowman] Player {0} is dead, freeing crossbow and switching back", currentPlayer + 1);
+			Logger.LogInfo (string.Format ("Player {0} is dead, freeing crossbow and switching back", currentPlayer + 1));
 
 			#if UNITY_ANDROID
 			if (aiController != null) {
 				if (currentPlayer == 0 && players [nextPlayer].GetComponent<PlayerBehaviour> ().health == 30) {
 					Social.ReportProgress(GPGSIds.achievement_dominated, 100, (bool success) => {
-						Debug.LogFormat ("[Crossbowman] Achievement: Dominated # {0}", success);
+						if (success)
+							Logger.LogInfo ("Achievement: Dominated - Success");
+						else
+							Logger.LogWarning ("Achievement: Dominated - Fail");
 					});
 				}
 			}
@@ -372,20 +390,37 @@ public class GameController : MonoBehaviour {
 			if (shotByMainPlayer) {
 				if (players [0].GetComponent<PlayerBehaviour> ().health == 30) {
 					Social.ReportProgress(GPGSIds.achievement_dominator, 100, (bool success) => {
-						Debug.LogFormat ("[Crossbowman] Achievement: Dominator # {0}", success);
+						if (success)
+							Logger.LogInfo ("Achievement: Dominator - Success");
+						else
+							Logger.LogWarning ("Achievement: Dominator - Fail");
 					});
 				} else if (players [0].GetComponent<PlayerBehaviour> ().health <= 10) {
 					Social.ReportProgress(GPGSIds.achievement_close_contest, 100, (bool success) => {
-						Debug.LogFormat ("[Crossbowman] Achievement: Close contest # {0}", success);
+						if (success)
+							Logger.LogInfo ("Achievement: Close Contest - Success");
+						else
+							Logger.LogWarning ("Achievement: Close Contest - Fail");
 					});
 				}
 				if (headshot) {
-					int distance = Mathf.RoundToInt(Vector3.Distance(players[0].transform.position, players[1].transform.position) * 10);
-					Social.ReportProgress(GPGSIds.achievement_headshot, 100, (bool success) => {
-						Debug.LogFormat ("[Crossbowman] Achievement: Headshot # {0}", success);
+					PlayGamesPlatform.Instance.IncrementAchievement (GPGSIds.achievement_head_hunter, 1, (bool success) => {
+						if (success)
+							Logger.LogInfo ("Achievement: Head Hunter - Success");
+						else
+							Logger.LogWarning ("Achievement: Head Hunter - Fail");
 					});
-					Social.ReportScore(distance, GPGSIds.leaderboard_headshots, (bool success) => {
-						Debug.LogFormat ("[Crossbowman] Score: {0} # {1}", distance, success);
+					Social.ReportProgress(GPGSIds.achievement_headshot, 100, (bool success) => {
+						if (success)
+							Logger.LogInfo ("Achievement: Headshot - Success");
+						else
+							Logger.LogWarning ("Achievement: Headshot - Fail");
+					});
+					Social.ReportScore(distance, GPGSIds.leaderboard_headshot_distance, (bool success) => {
+						if (success)
+							Logger.LogInfo (string.Format ("Leaderboard: Headshot {0} - Success", distance));
+						else
+							Logger.LogWarning (string.Format ("Leaderboard: Headshot {0} - Fail", distance));
 					});
 				}
 
@@ -456,7 +491,7 @@ public class GameController : MonoBehaviour {
 		#endif
 	}
 		
-	private static void LoadAd() {
+	protected static void LoadAd() {
 		#if UNITY_ANDROID
 		if (interstitialAd != null) {
 			interstitialAd.Destroy ();
